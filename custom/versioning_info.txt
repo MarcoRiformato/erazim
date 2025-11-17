@@ -1,0 +1,11 @@
+Custom PoC modules loaded via `inc/loader_custom.php`.
+
+- `po1_pulsanti_ultimi.php` injects "Moje poslední" and "Všechny poslední" filter buttons into the admin ticket list without touching core PHP.
+- `po2_allegati_inline.php` converts attachment download links in `admin_ticket.php` into inline, base64-backed blocks that live inside each message body.
+
+Upgrade steps for future HESK releases:
+1. Copy the new HESK core over the project, keeping the `custom/` directory intact.
+2. Re-apply the single include addition at the bottom of `inc/common.inc.php` so the loader runs.
+3. Confirm `inc/loader_custom.php` still loads `custom/*.php` files (update only if the directory layout changes).
+4. Test that the filter buttons and inline attachments render correctly in the admin UI.
+

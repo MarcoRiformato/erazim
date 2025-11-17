@@ -1,0 +1,89 @@
+diff --git a/inc/print_tickets.inc.php b/inc/print_tickets.inc.php
+--- a/inc/print_tickets.inc.php
++++ b/inc/print_tickets.inc.php
+@@ -46,0 +47,2 @@
++// Support latest-mode (all|my) via core SQL when present
++$latest_mode = hesk_GET('latest', '');
+@@ -87,0 +90,1 @@
++`lastchange_by`,
+@@ -114,0 +117,30 @@
++// Base FROM clause; we may override it for latest filters
++$base_from = " FROM `".hesk_dbEscape($hesk_settings['db_pfix'])."tickets` ";
++
++// Determine if we should use the updates table for latest ordering
++$use_updates_latest = ($latest_mode === 'all' || $latest_mode === 'my');
++
++if ($use_updates_latest) {
++    // Build JOIN against updates table:
++    // - latest=all   -> staff_id = 0 (global)
++    // - latest=my    -> staff_id = current staff id
++    $current_staff_id = isset($_SESSION['id']) ? intval($_SESSION['id']) : 0;
++    if ($latest_mode === 'all') {
++        $base_from = " FROM `".hesk_dbEscape($hesk_settings['db_pfix'])."tickets` AS `t1` INNER JOIN `hesk_ticket_updates` AS `tup_all` ON `tup_all`.`ticket_id` = `t1`.`id` AND `tup_all`.`staff_id` = 0 ";
++        // Tell the sorter to use updates timestamp
++        $GLOBALS['hesk_latest_order'] = "`tup_all`.`changed_at` DESC";
++    } else {
++        // latest = my
++        // Use LEFT JOIN so we can fall back to tickets that have lastchange_by = me (for legacy paths)
++        $base_from = " FROM `".hesk_dbEscape($hesk_settings['db_pfix'])."tickets` AS `t1` LEFT JOIN `hesk_ticket_updates` AS `tup_me` ON `tup_me`.`ticket_id` = `t1`.`id` AND `tup_me`.`staff_id` = " . $current_staff_id . " ";
++        $GLOBALS['hesk_latest_order'] = "COALESCE(`tup_me`.`changed_at`, `t1`.`lastchange`) DESC";
++        // Add a WHERE constraint later to include either an updates hit or legacy lastchange_by = me
++        $GLOBALS['hesk_latest_my_filter'] = " ( `tup_me`.`ticket_id` IS NOT NULL OR `t1`.`lastchange_by` = " . $current_staff_id . " ) ";
++    }
++}
++
++// Stock ownership behavior
++$ownership_where = hesk_myOwnership();
++// If a base_from wasn't prepared (because we disabled latest), use simple FROM tickets
++if (!isset($base_from) || !$base_from) {
++    $base_from = " FROM `".hesk_dbEscape($hesk_settings['db_pfix'])."tickets` ";
++}
++$sql_final.= $base_from . " WHERE ".hesk_myCategories()." AND " . $ownership_where;
+@@ -148,0 +179,10 @@
++if ($use_updates_latest) {
++    if ($latest_mode === 'all') {
++        $sql_count .= "`".hesk_dbEscape($hesk_settings['db_pfix'])."tickets` AS `t1` INNER JOIN `hesk_ticket_updates` AS `tup_all` ON `tup_all`.`ticket_id` = `t1`.`id` AND `tup_all`.`staff_id` = 0 ";
++    } else {
++        $sql_count .= "`".hesk_dbEscape($hesk_settings['db_pfix'])."tickets` AS `t1` INNER JOIN `hesk_ticket_updates` AS `tup_me` ON `tup_me`.`ticket_id` = `t1`.`id` AND `tup_me`.`staff_id` = " . intval($_SESSION['id']) . " ";
++    }
++    $sql_count .= " WHERE ".hesk_myCategories()." AND " . $ownership_where;
++} else {
++    $sql_count .= "`".hesk_dbEscape($hesk_settings['db_pfix'])."tickets` WHERE ".hesk_myCategories()." AND " . $ownership_where;
++}
+@@ -214,0 +255,10 @@
++if ($latest_mode == 'my' || $latest_mode == 'all')
++{
++    $_GET['s_my'] = 1;
++    $_GET['s_ot'] = 1;
++    $_GET['s_un'] = 1;
++    unset($_GET['ql']);
++}
++require(HESK_PATH . 'inc/assignment_search.inc.php');
++$is_quick_link = $preserve_quick_link;
++if ($latest_mode == 'my' || $latest_mode == 'all')
++{
++    $is_quick_link = false;
++}
++require(HESK_PATH . 'inc/assignment_search.inc.php');
++if ($latest_mode == 'my' || $latest_mode == 'all')
++{
++    $is_quick_link = false;
++}
+@@ -235,0 +246,11 @@
++// Old lastchange_by filter no longer used when using updates table
++if (!$use_updates_latest) {
++    // Legacy fallback for environments without updates table
++    if ($latest_mode == 'my' && isset($_SESSION['id']))
++    {
++        $current_staff = intval($_SESSION['id']);
++        $latest_sql = " AND ( `lastchange_by` = {$current_staff} OR (`lastchange_by` IS NULL AND `owner` = {$current_staff}) ) ";
++        $sql .= $latest_sql;
++        $sql_count .= $latest_sql;
++    }
++}
+@@ -343,0 +356,6 @@
++if (isset($GLOBALS['hesk_latest_my_filter']) && $GLOBALS['hesk_latest_my_filter']) {
++    $sql .= " AND " . $GLOBALS['hesk_latest_my_filter'] . " ";
++    $sql_count .= " AND " . $GLOBALS['hesk_latest_my_filter'] . " ";
++}
+

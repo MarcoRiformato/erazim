@@ -1,0 +1,9 @@
+diff --git a/reply_ticket.php b/reply_ticket.php
+--- a/reply_ticket.php
++++ b/reply_ticket.php
+@@ -217,1 +217,1 @@
+-/* Update ticket as necessary */
+-$res = hesk_dbQuery("UPDATE `".hesk_dbEscape($hesk_settings['db_pfix'])."tickets` SET `lastchange`=NOW(), `status`='{$ticket['status']}', `replies`=`replies`+1, `lastreplier`='0' WHERE `id`='{$ticket['id']}'");
++/* Update ticket as necessary */
++$res = hesk_dbQuery("UPDATE `".hesk_dbEscape($hesk_settings['db_pfix'])."tickets` SET `lastchange`=NOW(), `lastchange_by`=0, `status`='{$ticket['status']}', `replies`=`replies`+1, `lastreplier`='0' WHERE `id`='{$ticket['id']}'");
+

@@ -1,0 +1,19 @@
+diff --git a/inc/prepare_ticket_search.inc.php b/inc/prepare_ticket_search.inc.php
+--- a/inc/prepare_ticket_search.inc.php
++++ b/inc/prepare_ticket_search.inc.php
+@@ -145,0 +146,13 @@
++
++/* Start the order by part of the SQL query */
++if (isset($GLOBALS['hesk_latest_order']) && $GLOBALS['hesk_latest_order']) {
++    // Latest-mode: sort by updates timestamp prepared in print_tickets.inc.php
++    $sql .= " ORDER BY " . $GLOBALS['hesk_latest_order'] . " ";
++    // Ensure stable secondary ordering
++    $sql .= ' , `priority` ASC ';
++    // Skip default grouping/sorting below
++    $asc = 0;
++    $asc_rev = 1;
++    $group = '';
++    $sort = 'lastchange';
++    return;
++}
+

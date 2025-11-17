@@ -1,0 +1,9 @@
+diff --git a/inc/pipe_functions.inc.php b/inc/pipe_functions.inc.php
+--- a/inc/pipe_functions.inc.php
++++ b/inc/pipe_functions.inc.php
+@@ -255,1 +255,1 @@
+-		// Update ticket as necessary
+-		hesk_dbQuery("UPDATE `".hesk_dbEscape($hesk_settings['db_pfix'])."tickets` SET `lastchange`=NOW(),`status`='{$ticket['status']}',`replies`=`replies`+1,`lastreplier`='0' WHERE `id`='".intval($ticket['id'])."'");
++		// Update ticket as necessary
++		hesk_dbQuery("UPDATE `".hesk_dbEscape($hesk_settings['db_pfix'])."tickets` SET `lastchange`=NOW(),`lastchange_by`=0,`status`='{$ticket['status']}',`replies`=`replies`+1,`lastreplier`='0' WHERE `id`='".intval($ticket['id'])."'");
+

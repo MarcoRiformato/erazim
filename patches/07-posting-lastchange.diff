@@ -1,0 +1,17 @@
+diff --git a/inc/posting_functions.inc.php b/inc/posting_functions.inc.php
+--- a/inc/posting_functions.inc.php
++++ b/inc/posting_functions.inc.php
+@@ -82,1 +82,4 @@
+     $locked = isset($ticket['locked']) ? 1 : 0;
++    $closedat = isset($ticket['closedat']) ? 'NOW()' : 'NULL';
++    $closedby = isset($ticket['closedby']) ? intval($ticket['closedby']) : 'NULL';
++    $lastchange_by = isset($ticket['lastchange_by']) ? intval($ticket['lastchange_by']) : (isset($_SESSION['id']) ? intval($_SESSION['id']) : 0);
+@@ -99,1 +102,1 @@
+ 		`dt`,
+ 		`lastchange`,
++        `lastchange_by`,
+@@ -128,1 +131,1 @@
+ 		NOW(),
+ 		NOW(),
++        ".intval($lastchange_by).",
+

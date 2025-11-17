@@ -1,0 +1,11 @@
+diff --git a/inc/common.inc.php b/inc/common.inc.php
+--- a/inc/common.inc.php
++++ b/inc/common.inc.php
+@@ -2938,0 +2939,5 @@
++
++// Load custom directory (upgrade-safe hook)
++$customLoaderPath = dirname(__FILE__) . '/loader_custom.php';
++if (file_exists($customLoaderPath)) {
++    require_once $customLoaderPath;
++}
+

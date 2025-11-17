@@ -1,0 +1,60 @@
+# HESK Core Files - exclude from version control
+# Only custom/, patches/, scripts/, and docs/ are tracked
+
+# Exclude all HESK core directories and files
+/admin/
+/attachments/
+/cache/
+/cron/
+/css/
+/docs/
+/fonts/
+/img/
+/inc/
+/js/
+/knowledgebase.php
+/language/
+/print.php
+/print_sec_img.php
+/rate.php
+/rate_kb.php
+/reply_ticket.php
+/robots.txt
+/submit_ticket.php
+/suggest_articles.php
+/suggest_email.php
+/theme/
+/ticket.php
+/upload_attachment.php
+/vendor/
+/readme.html
+/footer.txt
+/head.txt
+/header.txt
+/hesk_settings.inc.php
+/index.php
+/change_status.php
+/download_attachment.php
+/file_limits.php
+/ip_whois.php
+/debug_lastchange.php
+/init_trigger.php
+/0
+/tatus -sb
+
+# But keep these custom directories
+!/custom/
+!/db/
+!/patches/
+!/scripts/
+!/UPGRADE.md
+!/README.md
+!/SETUP.md
+
+# Standard ignores
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.swp
+*~

@@ -1,0 +1,9 @@
+diff --git a/admin/admin_reply_ticket.php b/admin/admin_reply_ticket.php
+--- a/admin/admin_reply_ticket.php
++++ b/admin/admin_reply_ticket.php
+@@ -364,1 +364,3 @@
+ $sql.= $submit_as_customer ? "`lastreplier`='0', `replierid`='0' " : "`lastreplier`='1', `replierid`='".intval($_SESSION['id'])."' ";
++
++/* Update time_worked and lastchange metadata */
++$sql .= ", `lastchange` = NOW(), `lastchange_by` = ".intval($_SESSION['id'])." ";
+
