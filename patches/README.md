@@ -4,7 +4,11 @@ These patch files contain the minimal core modifications needed for the "last ch
 
 ## Current Patches
 
-- `01-loader.diff` - Adds custom loader include to `inc/common.inc.php`
+### Infrastructure Patches
+- `00-loader-create.diff` - **Creates** `inc/loader_custom.php` file that loads all `custom/*.php` files
+- `01-loader.diff` - Adds `require_once` for loader to `inc/common.inc.php`
+
+### Feature Patches (Last Changed Tracking)
 - `02-latest-mode.diff` - Adds latest-mode SQL JOIN logic and `lastchange_by` to SELECT in `inc/print_tickets.inc.php`
 - `03-latest-order.diff` - Adds latest-order override to `inc/prepare_ticket_search.inc.php`
 - `04-admin-reply-lastchange.diff` - Adds `lastchange_by` update to `admin/admin_reply_ticket.php`
@@ -20,7 +24,11 @@ These patch files contain the minimal core modifications needed for the "last ch
 1. Make your core modifications to the fresh HESK install
 2. Generate new patches:
    ```bash
+   # Infrastructure patches
+   git diff -- inc/loader_custom.php > patches/00-loader-create.diff
    git diff -- inc/common.inc.php > patches/01-loader.diff
+   
+   # Feature patches
    git diff -- inc/print_tickets.inc.php > patches/02-latest-mode.diff
    git diff -- inc/prepare_ticket_search.inc.php > patches/03-latest-order.diff
    git diff -- admin/admin_reply_ticket.php > patches/04-admin-reply-lastchange.diff

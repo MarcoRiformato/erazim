@@ -1,11 +1,125 @@
-Custom PoC modules loaded via `inc/loader_custom.php`.
+================================================================================
+HESK CUSTOMIZATION VERSIONING INFO
+================================================================================
 
-- `po1_pulsanti_ultimi.php` injects "Moje poslední" and "Všechny poslední" filter buttons into the admin ticket list without touching core PHP.
-- `po2_allegati_inline.php` converts attachment download links in `admin_ticket.php` into inline, base64-backed blocks that live inside each message body.
+Project: Školy Erazim HESK Customizations
+Current HESK Version: 3.5.0
+Last Updated: November 2025
 
-Upgrade steps for future HESK releases:
-1. Copy the new HESK core over the project, keeping the `custom/` directory intact.
-2. Re-apply the single include addition at the bottom of `inc/common.inc.php` so the loader runs.
-3. Confirm `inc/loader_custom.php` still loads `custom/*.php` files (update only if the directory layout changes).
-4. Test that the filter buttons and inline attachments render correctly in the admin UI.
+================================================================================
+ARCHITECTURE OVERVIEW
+================================================================================
+
+All custom code lives in the `custom/` directory and is automatically loaded
+via `inc/loader_custom.php`. Files are loaded in alphabetical order (po0, po1,
+po2, etc.), allowing controlled dependency management.
+
+Core HESK files require minimal patches (stored in `patches/` directory) to:
+1. Load the custom code loader
+2. Hook into specific ticket list queries
+3. Track "last changed by" metadata
+
+================================================================================
+CUSTOM MODULES (custom/)
+================================================================================
+
+Infrastructure:
+- po0_hesk35_compat.php       - HESK 3.5.0 compatibility functions
+                                (customer accounts, bookmarking, modals)
+
+Features:
+- po1_pulsanti_ultimi.php     - "Moje poslední" and "Všechny poslední" buttons
+                                (injects filter buttons into ticket list UI)
+- po2_allegati_inline.php     - Inline attachment display (disabled)
+                                (converts download links to inline base64)
+- po3_lastchange_bootstrap.php - Last-change tracking bootstrap
+                                (ensures DB table and triggers exist)
+- po4_latest_query_rewriter.php - SQL query rewriter (disabled)
+                                (dynamic query modification for latest filters)
+
+================================================================================
+CORE PATCHES (patches/)
+================================================================================
+
+Infrastructure Patches:
+- 00-loader-create.diff       - Creates inc/loader_custom.php
+- 01-loader.diff              - Adds require_once to inc/common.inc.php
+
+Feature Patches (Last Changed Tracking):
+- 02-latest-mode.diff         - Latest-mode SQL JOIN (inc/print_tickets.inc.php)
+- 03-latest-order.diff        - Latest-order override (inc/prepare_ticket_search.inc.php)
+- 04-admin-reply-lastchange.diff - Track admin replies
+- 05-admin-ticket-lastchange.diff - Track admin ticket actions
+- 06-reply-ticket-lastchange.diff - Track customer replies
+- 07-posting-lastchange.diff  - Track new ticket creation
+- 08-pipe-lastchange.diff     - Track piped email replies
+
+================================================================================
+DATABASE SCHEMA (db/)
+================================================================================
+
+Core Tables:
+- hesk_ticket_updates         - Tracks ticket update timestamps per staff member
+- hesk_customers              - HESK 3.5.0 customer accounts
+- hesk_ticket_to_customer     - Links tickets to customers
+
+Modified Columns:
+- hesk_tickets.lastchange_by  - Staff ID who last modified ticket
+- hesk_auth_tokens.user_type  - STAFF or CUSTOMER token type
+
+Migrations:
+- triggers.sql                - All MySQL triggers for update tracking
+- hesk_35_upgrade.sql         - HESK 3.5.0 customer tables
+- migrate_customers_to_35.sql - Migrate existing customer data
+- hesk_35_auth_tokens.sql     - Add user_type column
+
+================================================================================
+UPGRADE PROCESS (every ~6 months)
+================================================================================
+
+See UPGRADE.md for detailed instructions. Summary:
+
+1. Backup database and hesk_settings.inc.php
+2. Delete all HESK core files (keep custom/, db/, patches/, scripts/)
+3. Extract new HESK version to root
+4. Restore hesk_settings.inc.php
+5. Run database migrations if needed
+6. Apply patches: .\scripts\apply_patches.ps1
+7. Test all features
+8. Commit any updated patches to Git
+
+NOTE: Patches may need manual updates if HESK core files change structure.
+
+================================================================================
+VERSION CONTROL (Git)
+================================================================================
+
+Tracked Files/Directories:
+- custom/           - All custom PHP modules
+- patches/          - All core modification patches
+- db/               - All database migrations
+- scripts/          - Automation scripts (apply_patches.ps1, etc.)
+- README.md         - Project overview
+- SETUP.md          - Initial setup guide
+- UPGRADE.md        - Upgrade process guide
+
+Ignored (see .gitignore):
+- All HESK core files
+- hesk_settings.inc.php (contains sensitive data)
+- attachments/, cache/, logs/
+
+================================================================================
+TESTING CHECKLIST
+================================================================================
+
+After each upgrade, verify:
+□ "Moje poslední" button shows tickets last edited by current user
+□ "Všechny poslední" button shows all tickets by most recent edit
+□ Ticket list displays correctly with all columns
+□ Ticket detail page loads with sidebar and customer info
+□ Replying to tickets updates "last changed" timestamp
+□ Adding notes/attachments updates "last changed" timestamp
+□ All standard HESK features work (categories, priorities, etc.)
+
+================================================================================
 

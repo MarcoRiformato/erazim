@@ -22,14 +22,37 @@ Copy-Item -Recurse custom custom_backup
 
 ### 2. Replace HESK Core Files
 
-1. Download the new HESK version
-2. Extract it to a temporary location
-3. Copy all files **except**:
-   - `custom/` directory (keep your version)
-   - `hesk_settings.inc.php` (keep your configuration)
-   - Any uploaded attachments, cache, etc.
+**IMPORTANT**: Back up `hesk_settings.inc.php` before deleting core files!
 
-### 3. Re-apply Core Patches
+```powershell
+# Save settings file
+Copy-Item hesk_settings.inc.php hesk_settings.inc.php.backup
+
+# Delete ALL HESK core files and directories (except custom/)
+# Keep: custom/, db/, patches/, scripts/, *.md files
+Get-ChildItem -Exclude custom,db,patches,scripts,*.md,hesk_settings.inc.php.backup | Remove-Item -Recurse -Force
+
+# Extract new HESK version to current directory
+# (Download and extract HESK 3.x.x here)
+
+# Restore settings
+Copy-Item hesk_settings.inc.php.backup hesk_settings.inc.php
+```
+
+### 3. Run Database Migrations (if needed)
+
+If upgrading from 3.4.x to 3.5.0, run these migrations:
+
+```powershell
+# Run from MySQL client or command line
+mysql -u root -p erazim < db/hesk_35_upgrade.sql
+mysql -u root -p erazim < db/migrate_customers_to_35.sql  
+mysql -u root -p erazim < db/hesk_35_auth_tokens.sql
+```
+
+For other version upgrades, check `db/` directory for new migration files.
+
+### 4. Re-apply Core Patches
 
 Run the patch application script:
 
@@ -37,15 +60,21 @@ Run the patch application script:
 .\scripts\apply_patches.ps1
 ```
 
-Or manually:
+Or manually apply each patch:
 
-```bash
+```powershell
+git apply patches/00-loader-create.diff
 git apply patches/01-loader.diff
-git apply patches/02-latest-order.diff
-# ... any other patches
+git apply patches/02-latest-mode.diff
+git apply patches/03-latest-order.diff
+git apply patches/04-admin-reply-lastchange.diff
+git apply patches/05-admin-ticket-lastchange.diff
+git apply patches/06-reply-ticket-lastchange.diff
+git apply patches/07-posting-lastchange.diff
+git apply patches/08-pipe-lastchange.diff
 ```
 
-### 4. Resolve Patch Conflicts (if any)
+### 5. Resolve Patch Conflicts (if any)
 
 If a patch fails, it means HESK changed those lines. You'll need to:
 
@@ -56,24 +85,56 @@ If a patch fails, it means HESK changed those lines. You'll need to:
    git diff -- inc/common.inc.php > patches/01-loader.diff
    ```
 
-### 5. Verify Installation
+### 6. Verify Installation
 
 1. Clear HESK cache: Delete files in `cache/` directory
-2. Visit admin panel and verify:
-   - "Všechny poslední" button appears
-   - "Moje poslední" button appears
-   - Both filters work correctly
-3. Check database triggers are active:
+2. Visit admin panel (`http://yourdomain/erazim/admin/`)
+3. Check that custom loader is working:
+   - Open browser console (F12)
+   - No JavaScript errors should appear
+4. Verify custom files are loaded:
+   ```powershell
+   # Check if loader exists
+   Test-Path inc/loader_custom.php
+   
+   # Check if all custom modules exist
+   Get-ChildItem custom/*.php
+   ```
+5. Check database triggers are active:
    ```sql
    SHOW TRIGGERS WHERE `Trigger` LIKE 'hesk_%updates%';
+   -- Should show multiple triggers
    ```
 
-### 6. Test Functionality
+### 7. Test Core Features
 
-- Create a new ticket
-- Edit a ticket (category, priority, reply, note, attachment)
-- Verify it appears in "Všechny poslední"
-- Switch users and verify "Moje poslední" shows only that user's edits
+Basic HESK functionality:
+- [ ] Login works
+- [ ] Can view ticket list
+- [ ] Can view ticket details
+- [ ] Can reply to tickets
+- [ ] Can create new tickets
+- [ ] Categories and priorities work
+
+Custom features:
+- [ ] "Všechny poslední" button appears in ticket list
+- [ ] "Moje poslední" button appears in ticket list  
+- [ ] Clicking "Všechny poslední" shows all tickets sorted by most recent edit
+- [ ] Clicking "Moje poslední" shows only tickets edited by current user
+- [ ] Customer names display correctly in ticket headers (not "[Customer]")
+
+### 8. Test Last-Changed Tracking
+
+Perform these actions and verify ticket appears in correct "latest" filters:
+- [ ] Create a new ticket → appears in "Všechny poslední"
+- [ ] Reply to ticket → updates timestamp
+- [ ] Add a note → updates timestamp
+- [ ] Change category/priority → updates timestamp
+- [ ] Add attachment → updates timestamp
+- [ ] Edit reply → updates timestamp
+- [ ] Switch to different staff user
+- [ ] Edit same ticket as new user → appears in their "Moje poslední"
+- [ ] Original user's "Moje poslední" no longer shows this ticket
 
 ## Troubleshooting
 

@@ -1,0 +1,31 @@
+diff --git a/inc/loader_custom.php b/inc/loader_custom.php
+new file mode 100644
+index 0000000..0000000
+--- /dev/null
++++ b/inc/loader_custom.php
+@@ -0,0 +1,24 @@
++<?php
++/**
++ * Custom Loader for HESK Customizations
++ * 
++ * This file is automatically loaded by inc/common.inc.php
++ * It loads all PHP files from the custom/ directory in alphabetical order.
++ */
++
++if (!defined('IN_SCRIPT')) {
++    die('Invalid attempt');
++}
++
++$customDir = dirname(dirname(__FILE__)) . '/custom';
++
++if (is_dir($customDir)) {
++    $files = glob($customDir . '/*.php');
++    if ($files) {
++        sort($files); // Load in alphabetical order (po0, po1, po2, po3, etc.)
++        foreach ($files as $file) {
++            require_once $file;
++        }
++    }
++}
++
+
